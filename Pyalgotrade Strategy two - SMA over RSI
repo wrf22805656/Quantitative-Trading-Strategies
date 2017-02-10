@@ -1,0 +1,27 @@
+#! /user/bin/env python
+
+from pyalgotrade import strategy
+from pyalgotrade.barfeed import yahoofeed
+from pyalgotrade.technical import ma
+from pyalgotrade.technical import rsi
+
+
+class Mystrategy(strategy.Strategy):
+        def __init__(self, feed):
+                strategy.Strategy.__init__(self, feed)
+                self.__rsi = rsi.RSI(feed.getDataSeries("orcl").getCloseDataSeries(),14)
+                self.__sma = ma.SMA(self.__rsi,15)
+
+        def onBars(self, bars):
+                bar = bars.getBar("orcl")
+                print "%s : %s :%s : %s" % (bar.getDateTime(), bar.getClose(), self.__rsi.getValue(), self.__sma.getValue())
+
+# load the yahoo finance data from the csv file
+
+feed = yahoofeed.Feed()
+feed.addBarsFromCSV("orcl", "orcl-2000.csv")
+
+
+# Evaluate the strategy with the feed's bars
+myStrategy = Mystrategy(feed)
+myStrategy.run()
